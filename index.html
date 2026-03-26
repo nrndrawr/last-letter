@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Untuk Kamu — Terakhir Kali</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,600&family=Lora:ital,wght@0,400;1,400&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink-deep: #e8567a;
+    --pink-mid: #f4829e;
+    --pink-light: #ffc2d4;
+    --pink-blush: #ffe8ef;
+    --yellow-warm: #f7c948;
+    --yellow-soft: #fde68a;
+    --yellow-pale: #fff8e1;
+    --cream: #fffaf3;
+    --dark: #2c1a24;
+    --text: #4a2c3a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--cream);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  #cursor {
+    position: fixed;
+    width: 16px; height: 16px;
+    background: var(--pink-mid);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%,-50%);
+    transition: transform 0.1s, background 0.3s;
+    mix-blend-mode: multiply;
+  }
+  #cursor-trail {
+    position: fixed;
+    width: 32px; height: 32px;
+    border: 1.5px solid var(--yellow-warm);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%,-50%);
+    transition: transform 0.25s ease, left 0.18s ease, top 0.18s ease;
+    opacity: 0.6;
+  }
+
+  /* Canvas floating petals */
+  #petal-canvas {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ─── INTRO OVERLAY ─── */
+  #intro {
+    position: fixed; inset: 0;
+    background: linear-gradient(135deg, #f4829e 0%, #fde68a 100%);
+    z-index: 1000;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 24px;
+    transition: opacity 0.9s ease, transform 0.9s ease;
+  }
+  #intro h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 6vw, 4rem);
+    color: white;
+    text-align: center;
+    text-shadow: 0 2px 20px rgba(0,0,0,0.15);
+    animation: fadeUp 1s ease both;
+  }
+  #intro p {
+    font-family: 'Lora', serif;
+    font-style: italic;
+    color: rgba(255,255,255,0.9);
+    font-size: clamp(0.9rem, 2vw, 1.1rem);
+    animation: fadeUp 1s 0.3s ease both;
+  }
+  #intro-btn {
+    background: white;
+    color: var(--pink-deep);
+    border: none;
+    padding: 14px 40px;
+    border-radius: 60px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 400;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    animation: fadeUp 1s 0.6s ease both;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 8px 30px rgba(232,86,122,0.25);
+  }
+  #intro-btn:hover { transform: scale(1.05); box-shadow: 0 12px 40px rgba(232,86,122,0.35); }
+  #intro.hide { opacity: 0; transform: scale(1.05); pointer-events: none; }
+
+  /* ─── MAIN WRAPPER ─── */
+  #main {
+    position: relative; z-index: 1;
+    min-height: 100vh;
+    opacity: 0;
+    transition: opacity 1s 0.3s ease;
+  }
+  #main.visible { opacity: 1; }
+
+  /* ─── HERO ─── */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 60px 24px;
+    position: relative;
+    background: radial-gradient(ellipse at 30% 20%, rgba(244,130,158,0.12) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 80%, rgba(247,201,72,0.12) 0%, transparent 60%);
+  }
+
+  .hero-tag {
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--pink-mid);
+    margin-bottom: 20px;
+    opacity: 0;
+    animation: fadeUp 0.8s 1.2s ease forwards;
+  }
+
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 8vw, 6rem);
+    line-height: 1.05;
+    text-align: center;
+    color: var(--dark);
+    margin-bottom: 32px;
+    opacity: 0;
+    animation: fadeUp 0.8s 1.4s ease forwards;
+  }
+  .hero-title em {
+    font-style: italic;
+    color: var(--pink-deep);
+    position: relative;
+  }
+  .hero-title em::after {
+    content: '';
+    position: absolute;
+    bottom: -4px; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--pink-light), var(--yellow-warm));
+    border-radius: 2px;
+  }
+
+  .hero-subtitle {
+    font-family: 'Lora', serif;
+    font-style: italic;
+    font-size: clamp(0.95rem, 2.5vw, 1.2rem);
+    color: #9e6e7e;
+    text-align: center;
+    max-width: 480px;
+    line-height: 1.8;
+    margin-bottom: 60px;
+    opacity: 0;
+    animation: fadeUp 0.8s 1.6s ease forwards;
+  }
+
+  .scroll-hint {
+    position: absolute; bottom: 36px;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    color: var(--pink-light);
+    font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase;
+    opacity: 0; animation: fadeIn 1s 2.5s ease forwards;
+  }
+  .scroll-hint span { display: block; }
+  .scroll-hint .arrow {
+    width: 1px; height: 40px;
+    background: linear-gradient(to bottom, var(--pink-light), transparent);
+    animation: scrollPulse 1.8s ease infinite;
+  }
+
+  /* ─── LETTER SECTION ─── */
+  .letter-section {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 80px 24px;
+  }
+
+  .letter-card {
+    background: white;
+    border-radius: 24px;
+    padding: clamp(36px, 6vw, 64px);
+    box-shadow: 0 20px 80px rgba(232,86,122,0.08), 0 4px 20px rgba(0,0,0,0.04);
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(244,130,158,0.12);
+  }
+  .letter-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--pink-deep), var(--yellow-warm), var(--pink-mid));
+  }
+  .letter-card::after {
+    content: '"';
+    position: absolute;
+    top: 20px; right: 36px;
+    font-family: 'Playfair Display', serif;
+    font-size: 8rem;
+    color: rgba(244,130,158,0.06);
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  .letter-date {
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--yellow-warm);
+    margin-bottom: 28px;
+  }
+
+  .letter-salutation {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-style: italic;
+    color: var(--pink-deep);
+    margin-bottom: 28px;
+  }
+
+  .letter-body {
+    font-family: 'Lora', serif;
+    font-size: clamp(0.95rem, 2vw, 1.05rem);
+    line-height: 1.95;
+    color: #5a3a4a;
+  }
+
+  .letter-body p { margin-bottom: 20px; }
+  .letter-body p:last-child { margin-bottom: 0; }
+
+  .letter-highlight {
+    background: linear-gradient(120deg, rgba(253,230,138,0.5) 0%, rgba(253,230,138,0.5) 100%);
+    background-size: 0% 100%;
+    background-repeat: no-repeat;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: background-size 1s ease;
+  }
+  .letter-highlight.lit { background-size: 100% 100%; }
+
+  .letter-sign {
+    margin-top: 40px;
+    padding-top: 28px;
+    border-top: 1px dashed rgba(244,130,158,0.25);
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--pink-deep);
+    text-align: right;
+  }
+
+  /* ─── MEMORIES SECTION ─── */
+  .memories-section {
+    padding: 60px 24px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    text-align: center;
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--pink-mid);
+    margin-bottom: 12px;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 5vw, 3rem);
+    text-align: center;
+    color: var(--dark);
+    margin-bottom: 48px;
+  }
+
+  .memory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+  }
+
+  .memory-card {
+    background: white;
+    border-radius: 16px;
+    padding: 28px;
+    border: 1px solid rgba(244,130,158,0.1);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+  }
+  .memory-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(244,130,158,0.05), rgba(247,201,72,0.05));
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .memory-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(232,86,122,0.12); }
+  .memory-card:hover::before { opacity: 1; }
+
+  .memory-icon {
+    font-size: 2rem;
+    margin-bottom: 16px;
+  }
+  .memory-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    color: var(--dark);
+    margin-bottom: 8px;
+  }
+  .memory-desc {
+    font-size: 0.875rem;
+    color: #9e7a8a;
+    line-height: 1.7;
+  }
+
+  /* ─── TYPEWRITER SECTION ─── */
+  .typewriter-section {
+    padding: 80px 24px;
+    background: linear-gradient(135deg, #fff0f5 0%, #fffde7 100%);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .typewriter-section::before,
+  .typewriter-section::after {
+    content: '';
+    position: absolute;
+    width: 300px; height: 300px;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .typewriter-section::before {
+    background: rgba(244,130,158,0.08);
+    top: -80px; left: -80px;
+  }
+  .typewriter-section::after {
+    background: rgba(247,201,72,0.1);
+    bottom: -80px; right: -80px;
+  }
+
+  .typewriter-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--yellow-warm);
+    margin-bottom: 32px;
+  }
+
+  #typewriter-text {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.3rem, 4vw, 2.2rem);
+    font-style: italic;
+    color: var(--dark);
+    min-height: 3em;
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.5;
+  }
+
+  #typewriter-text .cursor-blink {
+    display: inline-block;
+    width: 2px; height: 1.1em;
+    background: var(--pink-deep);
+    margin-left: 3px;
+    vertical-align: text-bottom;
+    animation: blink 1s step-end infinite;
+  }
+
+  /* ─── FINAL ─── */
+  .final-section {
+    padding: 100px 24px;
+    text-align: center;
+    position: relative;
+  }
+
+  .heart-container {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 40px;
+  }
+
+  #heart-svg {
+    width: 100px; height: 90px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    filter: drop-shadow(0 8px 20px rgba(232,86,122,0.3));
+  }
+  #heart-svg:hover { transform: scale(1.08); }
+
+  .heart-ripple {
+    position: absolute;
+    inset: -20px;
+    border-radius: 50%;
+    border: 2px solid var(--pink-light);
+    animation: ripple 2s ease infinite;
+    pointer-events: none;
+  }
+  .heart-ripple:nth-child(2) { animation-delay: 0.7s; }
+  .heart-ripple:nth-child(3) { animation-delay: 1.4s; }
+
+  .final-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 5vw, 3.5rem);
+    color: var(--dark);
+    margin-bottom: 20px;
+    line-height: 1.2;
+  }
+  .final-sub {
+    font-family: 'Lora', serif;
+    font-style: italic;
+    color: #9e7a8a;
+    font-size: 1.05rem;
+    max-width: 440px;
+    margin: 0 auto 48px;
+    line-height: 1.8;
+  }
+
+  /* Particle burst button */
+  #burst-btn {
+    background: linear-gradient(135deg, var(--pink-deep), var(--pink-mid));
+    color: white;
+    border: none;
+    padding: 16px 48px;
+    border-radius: 60px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(232,86,122,0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  #burst-btn:hover { transform: translateY(-2px); box-shadow: 0 14px 40px rgba(232,86,122,0.4); }
+  #burst-btn::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, var(--yellow-warm), #ffb347);
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  #burst-btn:hover::before { opacity: 1; }
+  #burst-btn span { position: relative; z-index: 1; }
+
+  /* ─── DOA FORM SECTION ─── */
+  .doa-section {
+    padding: 80px 24px;
+    max-width: 620px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .doa-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--pink-mid);
+    margin-bottom: 12px;
+  }
+
+  .doa-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.6rem, 4vw, 2.5rem);
+    color: var(--dark);
+    margin-bottom: 12px;
+  }
+
+  .doa-desc {
+    font-family: 'Lora', serif;
+    font-style: italic;
+    color: #9e7a8a;
+    font-size: 0.95rem;
+    margin-bottom: 36px;
+    line-height: 1.7;
+  }
+
+  .doa-card {
+    background: white;
+    border-radius: 20px;
+    padding: clamp(28px, 5vw, 48px);
+    box-shadow: 0 12px 50px rgba(232,86,122,0.08), 0 2px 12px rgba(0,0,0,0.04);
+    border: 1px solid rgba(244,130,158,0.12);
+    position: relative;
+    overflow: hidden;
+    text-align: left;
+  }
+  .doa-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--yellow-warm), var(--pink-mid), var(--pink-deep));
+  }
+
+  .doa-field {
+    margin-bottom: 20px;
+  }
+
+  .doa-field label {
+    display: block;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--pink-mid);
+    margin-bottom: 8px;
+    font-weight: 400;
+  }
+
+  .doa-field input,
+  .doa-field textarea {
+    width: 100%;
+    border: 1.5px solid rgba(244,130,158,0.2);
+    border-radius: 12px;
+    padding: 14px 18px;
+    font-family: 'Lora', serif;
+    font-size: 0.95rem;
+    color: var(--text);
+    background: var(--pink-blush);
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s, background 0.3s;
+    resize: none;
+  }
+  .doa-field input::placeholder,
+  .doa-field textarea::placeholder {
+    color: #c9a0b0;
+    font-style: italic;
+  }
+  .doa-field input:focus,
+  .doa-field textarea:focus {
+    border-color: var(--pink-mid);
+    background: white;
+    box-shadow: 0 0 0 4px rgba(244,130,158,0.1);
+  }
+
+  .doa-submit {
+    width: 100%;
+    background: linear-gradient(135deg, var(--pink-deep), var(--pink-mid));
+    color: white;
+    border: none;
+    padding: 16px;
+    border-radius: 60px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 8px 28px rgba(232,86,122,0.28);
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .doa-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 38px rgba(232,86,122,0.38);
+  }
+  .doa-submit:active { transform: scale(0.98); }
+  .doa-submit .wa-icon {
+    font-size: 1.1rem;
+  }
+
+  .doa-note {
+    margin-top: 14px;
+    text-align: center;
+    font-size: 0.75rem;
+    color: #c9a0b0;
+    font-style: italic;
+  }
+
+  #doa-success {
+    display: none;
+    margin-top: 20px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, rgba(253,230,138,0.3), rgba(244,130,158,0.15));
+    border-radius: 12px;
+    border: 1px solid rgba(247,201,72,0.3);
+    text-align: center;
+    font-family: 'Lora', serif;
+    font-style: italic;
+    color: var(--text);
+    font-size: 0.95rem;
+    line-height: 1.7;
+  }
+
+  /* Footer */
+  footer {
+    padding: 40px 24px;
+    text-align: center;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    color: var(--pink-light);
+    border-top: 1px solid rgba(244,130,158,0.1);
+  }
+
+  /* Particles */
+  .particle {
+    position: fixed;
+    pointer-events: none;
+    z-index: 500;
+    font-size: 1.2rem;
+    animation: particleFly 1.4s ease forwards;
+  }
+
+  /* ─── KEYFRAMES ─── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+  @keyframes blink {
+    0%,100% { opacity: 1; } 50% { opacity: 0; }
+  }
+  @keyframes ripple {
+    0%   { transform: scale(0.8); opacity: 0.6; }
+    100% { transform: scale(1.8); opacity: 0; }
+  }
+  @keyframes scrollPulse {
+    0%,100% { transform: scaleY(1); opacity: 1; }
+    50%     { transform: scaleY(0.7); opacity: 0.4; }
+  }
+  @keyframes particleFly {
+    0%   { transform: translate(0,0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--dx), var(--dy)) scale(0.2); opacity: 0; }
+  }
+
+  /* Scroll reveal */
+  .reveal {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .reveal.delay-1 { transition-delay: 0.1s; }
+  .reveal.delay-2 { transition-delay: 0.2s; }
+  .reveal.delay-3 { transition-delay: 0.3s; }
+  .reveal.delay-4 { transition-delay: 0.4s; }
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-trail"></div>
+<canvas id="petal-canvas"></canvas>
+
+<!-- INTRO OVERLAY -->
+<div id="intro">
+  <h1>Untuk Seseorang<br>yang Istimewa</h1>
+  <p>Ada sesuatu yang ingin aku sampaikan…</p>
+  <button id="intro-btn">Buka Suratnya ✉</button>
+</div>
+
+<!-- MAIN CONTENT -->
+<div id="main">
+
+  <!-- HERO -->
+  <section class="hero">
+    <p class="hero-tag">Sebuah Perpisahan</p>
+    <h1 class="hero-title">
+      Maaf, dan<br><em>Terima Kasih</em>
+    </h1>
+    <p class="hero-subtitle">
+      Tidak semua cerita berakhir seperti yang kita harapkan —<br>
+      tapi setiap cerita tetap layak untuk dihargai.
+    </p>
+    <div class="scroll-hint">
+      <span>Scroll</span>
+      <div class="arrow"></div>
+    </div>
+  </section>
+
+  <!-- LETTER -->
+  <section class="letter-section">
+    <div class="letter-card reveal">
+      <div class="letter-date" id="letter-date"></div>
+      <div class="letter-salutation">Untuk kamu yang aku sayangi,</div>
+      <div class="letter-body">
+        <p>
+          Aku tahu ini mungkin terasa tiba-tiba bagimu —
+          mungkin juga tidak. Tapi ada beberapa hal yang ingin aku sampaikan
+          sebelum kita benar-benar melangkah ke jalan masing-masing.
+        </p>
+        <p>
+          <span class="letter-highlight">Maaf</span> kalau aku pernah membuatmu merasa tidak nyaman, 
+          tidak didengar, atau tidak dihargai. Mungkin ada hal-hal yang aku lakukan 
+          atau tidak aku lakukan — yang tanpa kusadari, menyakitimu.
+        </p>
+        <p>
+          Aku tidak menyalahkanmu atas keputusanmu. Kamu berhak memilih 
+          apa yang terbaik untuk dirimu sendiri. Dan meskipun ini terasa berat bagiku, 
+          <span class="letter-highlight">aku menghormati pilihanmu</span> — sepenuhnya.
+        </p>
+        <p>
+          Yang ingin aku kamu tahu adalah: waktu yang kita punya bersama, 
+          sekecil apapun itu, <span class="letter-highlight">telah memberiku banyak hal</span>. 
+          Kamu mengajariku tentang keberanian untuk merasa, 
+          tentang betapa indahnya bisa menyukai seseorang.
+        </p>
+        <p>
+          Jadi, bukan dengan rasa marah, bukan dengan rasa kecewa yang ingin 
+          aku akhiri ini — tapi dengan <span class="letter-highlight">rasa syukur</span>. 
+          Terima kasih sudah pernah hadir, meski sebentar.
+        </p>
+      </div>
+      <div class="letter-sign">
+        Dengan tulus — Seseorang yang pernah menyukaimu 🌸
+      </div>
+    </div>
+  </section>
+
+  <!-- MEMORIES -->
+  <section class="memories-section">
+    <p class="section-label reveal">Yang Akan Selalu Kuingat</p>
+    <h2 class="section-title reveal">Momen Kecil yang Berharga</h2>
+    <div class="memory-grid">
+      <div class="memory-card reveal delay-1">
+        <div class="memory-icon">☀️</div>
+        <div class="memory-title">Senyummu</div>
+        <div class="memory-desc">Cara kamu tersenyum waktu mendengar sesuatu yang lucu — itu selalu bisa membuat hariku lebih cerah.</div>
+      </div>
+      <div class="memory-card reveal delay-2">
+        <div class="memory-icon">💬</div>
+        <div class="memory-title">Obrolan Kita</div>
+        <div class="memory-desc">Percakapan-percakapan kecil yang entah kenapa terasa begitu bermakna dan hangat di hatiku.</div>
+      </div>
+      <div class="memory-card reveal delay-3">
+        <div class="memory-icon">🌙</div>
+        <div class="memory-title">Momen Diam</div>
+        <div class="memory-desc">Bahkan diam bersamamu terasa nyaman — itu hal yang jarang bisa aku rasakan dengan siapapun.</div>
+      </div>
+      <div class="memory-card reveal delay-4">
+        <div class="memory-icon">✨</div>
+        <div class="memory-title">Perasaan Itu</div>
+        <div class="memory-desc">Rasa gugup yang menyenangkan setiap kali kamu muncul — sesuatu yang tidak bisa dipalsukan.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TYPEWRITER QUOTES -->
+  <section class="typewriter-section">
+    <p class="typewriter-label">Kata-kata dari Hati</p>
+    <div id="typewriter-text"><span class="cursor-blink"></span></div>
+  </section>
+
+  <!-- FINAL -->
+  <section class="final-section">
+    <div class="heart-container reveal">
+      <div class="heart-ripple"></div>
+      <div class="heart-ripple"></div>
+      <div class="heart-ripple"></div>
+      <svg id="heart-svg" viewBox="0 0 100 90" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="hg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#e8567a"/>
+            <stop offset="100%" stop-color="#f7c948"/>
+          </linearGradient>
+        </defs>
+        <path d="M50 85 C50 85 5 55 5 28 C5 14 16 5 28 5 C37 5 44 10 50 18 C56 10 63 5 72 5 C84 5 95 14 95 28 C95 55 50 85 50 85Z" fill="url(#hg)"/>
+      </svg>
+    </div>
+
+    <h2 class="final-title reveal">Semoga Kamu Selalu<br>Bahagia</h2>
+    <p class="final-sub reveal">
+      Kemanapun jalanmu membawamu pergi,<br>
+      aku berharap kamu selalu menemukan cahaya di sana.
+    </p>
+    <button id="burst-btn"><span>💛 Kirim Doa Terbaikku</span></button>
+  </section>
+
+  <!-- DOA FORM -->
+  <section class="doa-section">
+    <p class="doa-label reveal">Untuk Kamu</p>
+    <h2 class="doa-title reveal">Tuliskan Doa Terbaikmu 🌸</h2>
+    <p class="doa-desc reveal">Kalau ada yang ingin kamu sampaikan — doa, harapan, atau sekadar kata-kata tulus — aku dengan senang hati ingin mendengarnya.</p>
+    <div class="doa-card reveal">
+      <div class="doa-field">
+        <label>Nama Kamu</label>
+        <input type="text" id="doa-nama" placeholder="Siapa yang mengirim doa ini…" maxlength="60" />
+      </div>
+      <div class="doa-field">
+        <label>Doa &amp; Pesanmu</label>
+        <textarea id="doa-pesan" rows="5" placeholder="Tuliskan doa, harapan, atau kata-kata tulus untukmu di sini…" maxlength="500"></textarea>
+      </div>
+      <button class="doa-submit" id="doa-btn" onclick="kirimDoa()">
+        <span>🌸</span>
+        <span>Kirim Doa</span>
+      </button>
+      <p class="doa-note">Pesanmu akan langsung terkirim — tanpa perlu buka aplikasi apapun 🌿</p>
+      <div id="doa-success">
+        ✨ Terima kasih sudah menuliskan doamu yang indah.<br>Semoga kebaikanmu kembali padamu berlipat ganda. 🌸
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    dibuat dengan sepenuh hati — untuk perpisahan yang layak dikenang
+  </footer>
+
+</div>
+
+<script>
+// ─── CURSOR ───
+const cursor = document.getElementById('cursor');
+const trail  = document.getElementById('cursor-trail');
+let mx = 0, my = 0;
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursor.style.left = mx + 'px';
+  cursor.style.top  = my + 'px';
+  setTimeout(() => {
+    trail.style.left = mx + 'px';
+    trail.style.top  = my + 'px';
+  }, 80);
+});
+
+// ─── INTRO ───
+const intro     = document.getElementById('intro');
+const main      = document.getElementById('main');
+const introBtn  = document.getElementById('intro-btn');
+
+introBtn.addEventListener('click', () => {
+  intro.classList.add('hide');
+  main.classList.add('visible');
+  setTimeout(() => intro.style.display = 'none', 1000);
+});
+
+// ─── DATE ───
+const months = ['Januari','Februari','Maret','April','Mei','Juni',
+                 'Juli','Agustus','September','Oktober','November','Desember'];
+const now = new Date();
+document.getElementById('letter-date').textContent =
+  `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+
+// ─── PETAL CANVAS ───
+const canvas = document.getElementById('petal-canvas');
+const ctx    = canvas.getContext('2d');
+
+function resize() {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+const COLORS = ['#ffc2d4','#fde68a','#f4829e','#fff0a0','#ffb3c6','#ffe4a0'];
+const petals = Array.from({length: 28}, () => createPetal());
+
+function createPetal(fromTop = false) {
+  return {
+    x: Math.random() * window.innerWidth,
+    y: fromTop ? -20 : Math.random() * window.innerHeight,
+    size: 5 + Math.random() * 10,
+    color: COLORS[Math.floor(Math.random() * COLORS.length)],
+    speedX: (Math.random() - 0.5) * 0.8,
+    speedY: 0.4 + Math.random() * 0.8,
+    angle: Math.random() * Math.PI * 2,
+    spin: (Math.random() - 0.5) * 0.04,
+    opacity: 0.4 + Math.random() * 0.4,
+  };
+}
+
+function drawPetal(p) {
+  ctx.save();
+  ctx.translate(p.x, p.y);
+  ctx.rotate(p.angle);
+  ctx.globalAlpha = p.opacity;
+  ctx.fillStyle = p.color;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, p.size, p.size * 0.55, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function animatePetals() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  petals.forEach((p, i) => {
+    drawPetal(p);
+    p.x += p.speedX;
+    p.y += p.speedY;
+    p.angle += p.spin;
+    if (p.y > window.innerHeight + 20) petals[i] = createPetal(true);
+  });
+  requestAnimationFrame(animatePetals);
+}
+animatePetals();
+
+// ─── TYPEWRITER ───
+const quotes = [
+  "Terima kasih sudah pernah ada di hidupku.",
+  "Menyukaimu adalah salah satu hal terbaik yang pernah kulakukan.",
+  "Semoga kamu selalu tersenyum, di manapun kamu berada.",
+  "Aku tidak menyesal — karena kamu layak untuk disukai.",
+  "Pergi dengan damai, dan bawalah kenangan indah itu bersamamu.",
+];
+
+const tw   = document.getElementById('typewriter-text');
+let qIdx   = 0, charIdx = 0, deleting = false;
+
+function typeStep() {
+  const q    = quotes[qIdx];
+  const cur  = '<span class="cursor-blink"></span>';
+
+  if (!deleting && charIdx <= q.length) {
+    tw.innerHTML = q.slice(0, charIdx) + cur;
+    charIdx++;
+    setTimeout(typeStep, charIdx === q.length ? 2200 : 55);
+  } else if (deleting && charIdx >= 0) {
+    tw.innerHTML = q.slice(0, charIdx) + cur;
+    charIdx--;
+    setTimeout(typeStep, 30);
+  } else if (!deleting) {
+    deleting = true; setTimeout(typeStep, 400);
+  } else {
+    deleting = false;
+    qIdx = (qIdx + 1) % quotes.length;
+    charIdx = 0;
+    setTimeout(typeStep, 400);
+  }
+}
+setTimeout(typeStep, 2000);
+
+// ─── SCROLL REVEAL ───
+const revealEls = document.querySelectorAll('.reveal');
+const observer  = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add('visible');
+  });
+}, { threshold: 0.1 });
+revealEls.forEach(el => observer.observe(el));
+
+// ─── HIGHLIGHT ON SCROLL ───
+const highlights = document.querySelectorAll('.letter-highlight');
+const hlObserver = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add('lit');
+  });
+}, { threshold: 0.5 });
+highlights.forEach(h => hlObserver.observe(h));
+
+// ─── HEART CLICK ───
+const heartSvg = document.getElementById('heart-svg');
+let heartClicks = 0;
+heartSvg.addEventListener('click', () => {
+  heartClicks++;
+  const path = heartSvg.querySelector('path');
+  path.style.filter = `brightness(${1 + heartClicks * 0.1})`;
+  spawnParticles(heartSvg, ['❤️','💛','🌸','✨','💖']);
+  if (heartClicks >= 5) {
+    heartSvg.style.transform = 'scale(1.2) rotate(5deg)';
+    setTimeout(() => heartSvg.style.transform = '', 400);
+    heartClicks = 0;
+    path.style.filter = '';
+  }
+});
+
+// ─── BURST BUTTON ───
+document.getElementById('burst-btn').addEventListener('click', function() {
+  spawnParticles(this, ['💛','🌸','✨','🌟','💖','🎀','🌼']);
+  this.textContent = '';
+  this.innerHTML = '<span>💛 Terima kasih sudah membaca 💛</span>';
+  this.style.background = 'linear-gradient(135deg, #f7c948, #ffb347)';
+  setTimeout(() => {
+    this.innerHTML = '<span>💛 Kirim Doa Terbaikku</span>';
+    this.style.background = '';
+  }, 3500);
+});
+
+// ─── KIRIM DOA VIA DISCORD WEBHOOK ───
+async function kirimDoa() {
+  const WEBHOOK_URL = 'https://discord.com/api/webhooks/1486729311707861012/ZPcKz837ZEkamMbOIQIdM9oVGLqEPzYGDx9lQsGtbOA6g4LJgFC1uPVaSM2UPOqv4fO3'; // ← ganti ini!
+
+  const nama  = document.getElementById('doa-nama').value.trim();
+  const pesan = document.getElementById('doa-pesan').value.trim();
+  const btn     = document.getElementById('doa-btn');
+  const success = document.getElementById('doa-success');
+
+  // Validasi nama
+  if (!nama) {
+    document.getElementById('doa-nama').focus();
+    document.getElementById('doa-nama').style.borderColor = 'var(--pink-deep)';
+    document.getElementById('doa-nama').placeholder = '⚠️ Nama tidak boleh kosong…';
+    setTimeout(() => {
+      document.getElementById('doa-nama').style.borderColor = '';
+      document.getElementById('doa-nama').placeholder = 'Siapa yang mengirim doa ini…';
+    }, 2000);
+    return;
+  }
+
+  // Validasi pesan
+  if (!pesan) {
+    document.getElementById('doa-pesan').focus();
+    document.getElementById('doa-pesan').style.borderColor = 'var(--pink-deep)';
+    document.getElementById('doa-pesan').placeholder = '⚠️ Tulis doa atau pesanmu dulu ya…';
+    setTimeout(() => {
+      document.getElementById('doa-pesan').style.borderColor = '';
+      document.getElementById('doa-pesan').placeholder = 'Tuliskan doa, harapan, atau kata-kata tulus untukmu di sini…';
+    }, 2000);
+    return;
+  }
+
+  // Loading state
+  btn.innerHTML = '<span>⏳</span><span>Mengirim doa…</span>';
+  btn.disabled  = true;
+  btn.style.opacity = '0.8';
+
+  const payload = {
+    username: '🌸 Web Perpisahan',
+    avatar_url: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f338.png',
+    embeds: [{
+      title: '💌 Doa Baru Masuk!',
+      color: 0xf4829e,
+      fields: [
+        { name: '👤 Nama', value: nama, inline: true },
+        { name: '🕐 Waktu', value: new Date().toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' }), inline: true },
+        { name: '💬 Pesan & Doa', value: pesan }
+      ],
+      footer: { text: '✨ Terkirim dari halaman perpisahan' }
+    }]
+  };
+
+  try {
+    const res = await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      // Sukses!
+      btn.innerHTML = '<span>✅</span><span>Doa Terkirim!</span>';
+      btn.style.background = 'linear-gradient(135deg, #43c67a, #2ecc71)';
+      btn.style.boxShadow  = '0 8px 28px rgba(46,204,113,0.3)';
+      btn.style.opacity    = '1';
+      success.style.display = 'block';
+      spawnParticles(btn, ['🌸','💛','✨','🌿','💖']);
+
+      // Reset setelah 4 detik
+      setTimeout(() => {
+        document.getElementById('doa-nama').value  = '';
+        document.getElementById('doa-pesan').value = '';
+        btn.innerHTML    = '<span>🌸</span><span>Kirim Doa</span>';
+        btn.style.background = '';
+        btn.style.boxShadow  = '';
+        btn.disabled     = false;
+        btn.style.opacity = '1';
+        success.style.display = 'none';
+      }, 4000);
+
+    } else {
+      throw new Error('Gagal');
+    }
+  } catch (err) {
+    btn.innerHTML = '<span>❌</span><span>Gagal kirim, coba lagi</span>';
+    btn.style.background = 'linear-gradient(135deg, #e74c3c, #c0392b)';
+    btn.style.opacity = '1';
+    btn.disabled = false;
+    setTimeout(() => {
+      btn.innerHTML    = '<span>🌸</span><span>Kirim Doa</span>';
+      btn.style.background = '';
+    }, 3000);
+  }
+}
+
+  const rect = el.getBoundingClientRect();
+  const cx   = rect.left + rect.width / 2;
+  const cy   = rect.top  + rect.height / 2;
+  for (let i = 0; i < 16; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.textContent = chars[Math.floor(Math.random() * chars.length)];
+    const angle = (Math.random() * Math.PI * 2);
+    const dist  = 80 + Math.random() * 120;
+    p.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+    p.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+    p.style.left = cx + 'px';
+    p.style.top  = cy + 'px';
+    p.style.animationDelay = Math.random() * 0.3 + 's';
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 1800);
+  }
+
+</script>
+</body>
+</html>
