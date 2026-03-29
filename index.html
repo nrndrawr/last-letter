@@ -820,22 +820,25 @@
   <div class="memory-card reveal delay-8">
     <div class="memory-icon">🌊</div>
     <div class="memory-title">Menjadi Tenang</div>
-    <div class="memory-desc">Keinginanku untuk selalu menenangkanmu saat kamu sedih dan bete adalah 
+    <div class="memory-desc">Keinginanku untuk selalu menenangkanmu saat 
+      kamu sedih dan bete adalah 
       caraku menunjukkan bahwa aku tulus menjagamu.</div>
   </div>
 
   <div class="memory-card reveal delay-9">
     <div class="memory-icon">🎵</div>
     <div class="memory-title">Lagu Kita</div>
-    <div class="memory-desc">Setiap melodi / lagu yang pernah kita dengar di masa masa itu, kini 
+    <div class="memory-desc">Setiap melodi / lagu yang pernah kita dengar 
+      di masa masa itu, kini 
       tersimpan rapi, menjadi latar belakang perjalanan yang sudah usai.</div>
   </div>
 
   <div class="memory-card reveal delay-10">
     <div class="memory-icon">🕊️</div>
     <div class="memory-title">Keikhlasan</div>
-    <div class="memory-desc">Melepaskanmu adalah bentuk cinta tertinggiku, agar kamu 
-      bisa menemukan kebahagiaan yang kamu cari.</div>
+    <div class="memory-desc">Melepaskanmu adalah bentuk cinta tertinggiku, 
+      agar kamu 
+      bisa menemukan kebahagiaan yang kamu cari, dan yang kamu harapkan aku bisa bahagia dengan orang yang lebih baik.</div>
   </div>
 </div>
     </div>
@@ -996,6 +999,20 @@ const quotes = [
   "Semoga kamu selalu tersenyum, di manapun kamu berada.",
   "Aku tidak menyesal — karena kamu layak untuk disukai.",
   "Pergi dengan damai, dan bawalah kenangan indah itu bersamamu.",
+  "Aku akan selalu mendoakan yang terbaik untukmu.",
+  "Terima kasih sudah pernah menjadi bagian dari hidupku.",
+  "Aku akan selalu mengenangmu dengan baik.",
+  "Semoga kamu menemukan kebahagiaan yang kamu cari.",
+  "Jangan merasa bersalah, aku sudah memaafkan segalanya.",
+  "Mungkin semesta hanya ingin kita saling mengenal, bukan saling memiliki.",
+  "Kamu bilang aku terlalu baik, tapi bagiku, kamu adalah alasan aku ingin menjadi baik.",
+  "Terima kasih sudah sempat mampir, meski hanya untuk menjadi kenangan.",
+  "Aku melepaskanmu dengan syukur, bukan dengan rasa syukur yang dipaksakan.",
+  "Meski jalan kita berbeda, doa-doaku akan tetap menemanimu dari jauh.",
+  "Menenangkanmu adalah tugasku yang paling aku sukai, meski kini aku tak lagi bisa melakukannya.",
+  "Setidaknya kita pernah mencoba membangun jembatan di atas perbedaan yang ada.",
+  "Aku akan baik-baik saja, jadi melangkahlah tanpa perlu menoleh ke belakang.",
+  "Cinta tidak selalu tentang memiliki, tapi tentang melihatmu bahagia di jalan pilihanmu."
 ];
 
 const tw   = document.getElementById('typewriter-text');
@@ -1166,6 +1183,7 @@ async function kirimDoa() {
   }
 }
 
+function spawnParticles(el, chars) {
   const rect = el.getBoundingClientRect();
   const cx   = rect.left + rect.width / 2;
   const cy   = rect.top  + rect.height / 2;
@@ -1183,7 +1201,37 @@ async function kirimDoa() {
     document.body.appendChild(p);
     setTimeout(() => p.remove(), 1800);
   }
+}
+</script>
 
+<div id="music-control" style="position: fixed; bottom: 20px; left: 20px; z-index: 9999; cursor: pointer;">
+  <span id="music-icon">🎵</span>
+</div>
+
+<audio id="bg-music" loop>
+  <source src="hati hati di jalan.mpeg" type="audio/mpeg">
+</audio>
+
+<script>
+  const music = document.getElementById('bg-music');
+  const musicBtn = document.getElementById('music-control');
+  const musicIcon = document.getElementById('music-icon');
+
+  // Musik mulai saat tombol "Buka Surat" di klik
+  document.getElementById('intro-btn').addEventListener('click', () => {
+    music.play();
+    music.volume = 0.2; 
+  });
+
+  musicBtn.addEventListener('click', () => {
+    if (music.paused) {
+      music.play();
+      musicIcon.textContent = '🎵';
+    } else {
+      music.pause();
+      musicIcon.textContent = '🔇';
+    }
+  });
 </script>
 </body>
 </html>
